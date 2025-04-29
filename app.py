@@ -1,10 +1,9 @@
-
 import pandas as pd
 import streamlit as st
 from datetime import datetime
 
 st.set_page_config(page_title="Project Watchlist Generator", layout="wide")
-st.title("📂 Project Watchlist Generator")
+st.title("📂 Project Watchlist Generator + Chatbot")
 
 # رفع ملف المشاريع
 uploaded_file = st.file_uploader("📂 قم برفع ملف المشاريع بصيغة Excel:", type=["xlsx"])
@@ -106,3 +105,30 @@ if uploaded_file:
             )
     else:
         st.info("لا توجد مشاريع تحتاج إلى مراقبة بناءً على البيانات الحالية.")
+
+    st.subheader("🤖 اسأل عن المشاريع:")
+    user_query = st.text_input("اكتب سؤالك هنا:")
+
+    if user_query:
+        query_lower = user_query.lower()
+
+        if any(word in query_lower for word in ['كل المشاريع', 'all projects']):
+            st.write("📋 جميع المشاريع:")
+            st.dataframe(projects_df, use_container_width=True)
+
+        elif any(word in query_lower for word in ['ويتش ليست', 'watchlist', 'قائمة المراقبة']):
+            st.write("🚧 المشاريع تحت المراقبة:")
+            st.dataframe(watchlist_df, use_container_width=True)
+
+        elif 'سبب' in query_lower or 'reason' in query_lower:
+            project_id = st.number_input("أدخل رقم المشروع الذي تريد معرفة سبب التأخير له:", min_value=1, max_value=len(watchlist_df), step=1)
+            selected_project = watchlist_df.iloc[project_id-1]
+            st.success(f"✅ سبب التأخير لمشروع {selected_project['Project Name']} هو: {selected_project['Reason for Delay']}")
+
+        elif 'توصية' in query_lower or 'تصحيح' in query_lower or 'recommend' in query_lower:
+            project_id = st.number_input("أدخل رقم المشروع الذي تريد معرفة الإجراء التصحيحي له:", min_value=1, max_value=len(watchlist_df), step=1)
+            selected_project = watchlist_df.iloc[project_id-1]
+            st.success(f"🛠️ التوصية التصحيحية لمشروع {selected_project['Project Name']} هي: {selected_project['Recommended Corrective Action']}")
+
+        else:
+            st.warning("⚠️ لم أفهم سؤالك بدقة. الرجاء استخدام كلمات مثل: كل المشاريع، ويتش ليست، سبب، توصية.")
